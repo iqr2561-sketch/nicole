@@ -40,7 +40,13 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeSection, setA
             ))}
           </ul>
         </nav>
-        <div>
+        <div className="space-y-2">
+          <a
+            href="#/"
+            className="block w-full text-left px-4 py-2 rounded-md text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
+          >
+            Volver al Sitio
+          </a>
           <button
             onClick={onLogout}
             className="w-full text-left px-4 py-2 rounded-md text-gray-400 hover:bg-red-800/50 hover:text-white transition-colors"

@@ -9,6 +9,14 @@ const ManageAbout: React.FC = () => {
   const [avatarUrl, setAvatarUrl] = useState(data.about.avatarUrl);
   const [message, setMessage] = useState('');
 
+  // Recargar datos cuando cambian
+  React.useEffect(() => {
+    const currentData = getData();
+    setData(currentData);
+    setBio(currentData.about.bio);
+    setAvatarUrl(currentData.about.avatarUrl);
+  }, []);
+
   const handleSave = () => {
     const updatedData = {
       ...data,

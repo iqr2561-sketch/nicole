@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Header from './components/Header';
 import HeroSection from './components/HeroSection';
@@ -8,10 +8,28 @@ import ProjectsSection from './components/ProjectsSection';
 import PhotographySection from './components/PhotographySection';
 import SkillsSection from './components/SkillsSection';
 import ContactSection from './components/ContactSection';
-import { getData } from './data/portfolioService';
+import { getData, PortfolioData } from './data/portfolioService';
 
 const Portfolio: React.FC = () => {
-  const data = getData();
+  const [data, setData] = useState<PortfolioData>(getData());
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setData(getData());
+    };
+
+    // Escuchar cambios en localStorage
+    window.addEventListener('storage', handleStorageChange);
+    
+    // También escuchar eventos personalizados para cambios en la misma pestaña
+    const customEvent = new Event('portfolioDataUpdated');
+    window.addEventListener('portfolioDataUpdated', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('portfolioDataUpdated', handleStorageChange);
+    };
+  }, []);
 
   const stars = React.useMemo(() => {
     const starCount = 150;

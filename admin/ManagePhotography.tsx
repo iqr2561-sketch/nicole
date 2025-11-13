@@ -10,6 +10,13 @@ const ManagePhotography: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [message, setMessage] = useState('');
 
+  // Recargar datos cuando cambian
+  React.useEffect(() => {
+    const currentData = getData();
+    setData(currentData);
+    setPhotos(currentData.photos);
+  }, []);
+
   const showMessage = (msg: string) => {
     setMessage(msg);
     setTimeout(() => setMessage(''), 3000);

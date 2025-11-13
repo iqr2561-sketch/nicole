@@ -8,6 +8,13 @@ const ManageContact: React.FC = () => {
   const [contact, setContact] = useState<ContactData>(data.contact);
   const [message, setMessage] = useState('');
 
+  // Recargar datos cuando cambian
+  React.useEffect(() => {
+    const currentData = getData();
+    setData(currentData);
+    setContact(currentData.contact);
+  }, []);
+
   const handleSave = () => {
     const updatedData = { ...data, contact };
     saveData(updatedData);

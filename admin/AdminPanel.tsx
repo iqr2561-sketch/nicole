@@ -1,9 +1,17 @@
 
 import React, { useState } from 'react';
 import Login from './Login';
+import AdminLayout from './AdminLayout';
+import ManageHero from './ManageHero';
+import ManageAbout from './ManageAbout';
+import ManageProjects from './ManageProjects';
+import ManageSkills from './ManageSkills';
+import ManagePhotography from './ManagePhotography';
+import ManageContact from './ManageContact';
 
 const AdminPanel: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(sessionStorage.getItem('isAuthenticated') === 'true');
+  const [activeSection, setActiveSection] = useState('hero');
 
   const handleLogin = () => {
     sessionStorage.setItem('isAuthenticated', 'true');
@@ -13,30 +21,40 @@ const AdminPanel: React.FC = () => {
   const handleLogout = () => {
     sessionStorage.removeItem('isAuthenticated');
     setIsAuthenticated(false);
+    window.location.hash = '#/';
   };
 
   if (!isAuthenticated) {
     return <Login onLogin={handleLogin} />;
   }
 
+  const renderSection = () => {
+    switch (activeSection) {
+      case 'hero':
+        return <ManageHero />;
+      case 'about':
+        return <ManageAbout />;
+      case 'projects':
+        return <ManageProjects />;
+      case 'skills':
+        return <ManageSkills />;
+      case 'photography':
+        return <ManagePhotography />;
+      case 'contact':
+        return <ManageContact />;
+      default:
+        return <ManageHero />;
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-black text-gray-200 flex flex-col items-center justify-center p-4 text-center">
-        <h1 className="text-4xl font-bold text-brand-green mb-6">Panel de Control</h1>
-        <p className="text-lg text-gray-400 mb-10 max-w-md">
-            Bienvenido. Desde aquí podrás gestionar el contenido de tu sitio web próximamente.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4">
-            <a href="#/" className="px-6 py-3 bg-gray-800 text-white font-bold rounded-md hover:bg-gray-700 transition-colors border border-gray-700">
-                Volver al Sitio
-            </a>
-            <button
-                onClick={handleLogout}
-                className="px-6 py-3 bg-red-900/50 text-white font-bold rounded-md hover:bg-red-800/50 transition-colors border border-red-800/50"
-            >
-                Cerrar Sesión
-            </button>
-        </div>
-    </div>
+    <AdminLayout 
+      activeSection={activeSection} 
+      setActiveSection={setActiveSection}
+      onLogout={handleLogout}
+    >
+      {renderSection()}
+    </AdminLayout>
   );
 };
 

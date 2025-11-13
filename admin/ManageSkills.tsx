@@ -12,6 +12,13 @@ const ManageSkills: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [message, setMessage] = useState('');
 
+  // Recargar datos cuando cambian
+  React.useEffect(() => {
+    const currentData = getData();
+    setData(currentData);
+    setSkills(currentData.skills);
+  }, []);
+
   const showMessage = (msg: string) => {
     setMessage(msg);
     setTimeout(() => setMessage(''), 3000);

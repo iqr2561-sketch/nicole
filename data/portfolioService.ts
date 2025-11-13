@@ -142,6 +142,8 @@ export const getData = (): PortfolioData => {
 export const saveData = (data: PortfolioData) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    // Disparar evento personalizado para notificar cambios en la misma pestaña
+    window.dispatchEvent(new Event('portfolioDataUpdated'));
   } catch (error) {
     console.error("Error saving to localStorage", error);
   }

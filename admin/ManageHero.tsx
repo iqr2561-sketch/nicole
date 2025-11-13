@@ -9,6 +9,14 @@ const ManageHero: React.FC = () => {
   const [subtitle, setSubtitle] = useState(data.hero.subtitle);
   const [message, setMessage] = useState('');
 
+  // Recargar datos cuando cambian
+  React.useEffect(() => {
+    const currentData = getData();
+    setData(currentData);
+    setName(currentData.hero.name);
+    setSubtitle(currentData.hero.subtitle);
+  }, []);
+
   const handleSave = () => {
     const updatedData = {
       ...data,
