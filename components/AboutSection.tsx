@@ -9,13 +9,16 @@ interface AboutSectionProps {
 }
 
 const AboutSection: React.FC<AboutSectionProps> = ({ bio, avatarUrl }) => {
+  const safeBio = bio || 'Información no disponible';
+  const safeAvatarUrl = avatarUrl || 'https://picsum.photos/seed/portfolio-avatar/256/256';
+
   return (
     <AnimatedSection id="about">
       <div className="flex flex-col md:flex-row items-center gap-12">
         <div className="w-48 h-48 md:w-64 md:h-64 flex-shrink-0">
           <ShineBorder className="rounded-full">
             <img
-              src={avatarUrl}
+              src={safeAvatarUrl}
               alt="Professional Avatar"
               className="w-full h-full object-cover rounded-full filter grayscale"
             />
@@ -26,7 +29,7 @@ const AboutSection: React.FC<AboutSectionProps> = ({ bio, avatarUrl }) => {
             Sobre Mí
           </h2>
           <p className="mt-6 text-lg text-gray-400 max-w-xl leading-relaxed">
-            {bio}
+            {safeBio}
           </p>
         </div>
       </div>

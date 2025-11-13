@@ -77,7 +77,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ name, subtitle }) => {
         initial="hidden"
         animate="visible"
       >
-        {(name || "Nicole Ponce").split("").map((char, index) => (
+        {((name || "Nicole Ponce") || "").split("").map((char, index) => (
           <motion.span key={index} variants={letterVariants}>
             {char}
           </motion.span>

@@ -49,7 +49,7 @@ const ProjectCard: React.FC<{ project: Project }> = ({ project }) => {
             <h3 className="text-xl font-bold text-white">{project.title}</h3>
             <p className="mt-2 text-gray-400 flex-grow">{project.description}</p>
             <div className="mt-4 flex flex-wrap gap-2">
-              {project.technologies.map((tech) => (
+              {project.technologies && Array.isArray(project.technologies) && project.technologies.map((tech) => (
                 <span key={tech} className="px-3 py-1 text-sm bg-gray-800 text-gray-300 rounded-full">
                   {tech}
                 </span>
@@ -63,6 +63,17 @@ const ProjectCard: React.FC<{ project: Project }> = ({ project }) => {
 };
 
 const ProjectsPage: React.FC = () => {
+  if (!projects || !Array.isArray(projects) || projects.length === 0) {
+    return (
+      <AnimatedSection id="projects">
+        <h2 className="text-3xl md:text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-gray-100 to-gray-500 mb-12">
+          Proyectos Destacados
+        </h2>
+        <p className="text-center text-gray-400">No hay proyectos disponibles</p>
+      </AnimatedSection>
+    );
+  }
+
   return (
     <AnimatedSection id="projects">
       <h2 className="text-3xl md:text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-gray-100 to-gray-500 mb-12">

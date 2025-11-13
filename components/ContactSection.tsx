@@ -11,6 +11,17 @@ interface ContactSectionProps {
 }
 
 const ContactSection: React.FC<ContactSectionProps> = ({ contact }) => {
+  if (!contact) {
+    return null;
+  }
+
+  const safeContact = {
+    whatsapp: contact.whatsapp || '#',
+    github: contact.github || '#',
+    linkedin: contact.linkedin || '#',
+    instagram: contact.instagram || '#',
+  };
+
   return (
     <>
       <AnimatedSection id="contact">
@@ -22,15 +33,15 @@ const ContactSection: React.FC<ContactSectionProps> = ({ contact }) => {
             ¿Listo para colaborar o tienes alguna pregunta? ¡Envíame un mensaje por WhatsApp! Estaré encantado de conectar contigo.
           </p>
           <div className="text-center">
-              <ShineButton href={contact.whatsapp} target="_blank" rel="noopener noreferrer">Chatear en WhatsApp</ShineButton>
+              <ShineButton href={safeContact.whatsapp} target="_blank" rel="noopener noreferrer">Chatear en WhatsApp</ShineButton>
           </div>
         </div>
 
         <div className="mt-16 flex justify-center gap-6">
-          <a href={contact.github} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-brand-green transition-colors"><GithubIcon /></a>
-          <a href={contact.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-brand-green transition-colors"><LinkedinIcon /></a>
-          <a href={contact.instagram} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-brand-green transition-colors"><InstagramIcon /></a>
-          <a href={contact.whatsapp} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-brand-green transition-colors"><WhatsAppIcon /></a>
+          <a href={safeContact.github} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-brand-green transition-colors"><GithubIcon /></a>
+          <a href={safeContact.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-brand-green transition-colors"><LinkedinIcon /></a>
+          <a href={safeContact.instagram} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-brand-green transition-colors"><InstagramIcon /></a>
+          <a href={safeContact.whatsapp} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-brand-green transition-colors"><WhatsAppIcon /></a>
         </div>
       </AnimatedSection>
       <Footer />
