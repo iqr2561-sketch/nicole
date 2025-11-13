@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { getData, saveData, PortfolioData, Skill } from '../data/portfolioService';
+import React, { useState, useEffect } from 'react';
+import { getData, saveSkill, deleteSkillById, PortfolioData, Skill } from '../data/portfolioService';
 import { AdminButton, AdminInput } from './common';
 
 const availableIcons = ['ReactIcon', 'TailwindIcon', 'JavaScriptIcon', 'TypeScriptIcon', 'NodeIcon', 'FigmaIcon'];
@@ -13,10 +13,13 @@ const ManageSkills: React.FC = () => {
   const [message, setMessage] = useState('');
 
   // Recargar datos cuando cambian
-  React.useEffect(() => {
-    const currentData = getData();
-    setData(currentData);
-    setSkills(currentData.skills);
+  useEffect(() => {
+    const loadData = async () => {
+      const currentData = await getData();
+      setData(currentData);
+      setSkills(currentData.skills);
+    };
+    loadData();
   }, []);
 
   const showMessage = (msg: string) => {
@@ -24,11 +27,15 @@ const ManageSkills: React.FC = () => {
     setTimeout(() => setMessage(''), 3000);
   };
   
-  const handleSaveAll = () => {
-    const updatedData = { ...data, skills };
-    saveData(updatedData);
-    setData(updatedData);
-    showMessage('¡Habilidades guardadas con éxito!');
+  const handleSaveAll = async () => {
+    try {
+      for (const skill of skills) {
+        await saveSkill(skill);
+      }
+      showMessage('¡Habilidades guardadas con éxito!');
+    } catch (error) {
+      showMessage('Error al guardar. Intenta nuevamente.');
+    }
   };
 
   const handleAdd = () => {
@@ -36,8 +43,14 @@ const ManageSkills: React.FC = () => {
     setIsCreating(true);
   };
 
-  const handleDelete = (id: string) => {
-    setSkills(skills.filter(s => s.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteSkillById(id);
+      setSkills(skills.filter(s => s.id !== id));
+      showMessage('¡Habilidad eliminada con éxito!');
+    } catch (error) {
+      showMessage('Error al eliminar. Intenta nuevamente.');
+    }
   };
 
   const handleEdit = (skill: Skill) => {
@@ -45,15 +58,21 @@ const ManageSkills: React.FC = () => {
     setIsCreating(false);
   };
 
-  const handleUpdateSkill = () => {
+  const handleUpdateSkill = async () => {
     if (!editingSkill) return;
-    if (isCreating) {
-      setSkills([...skills, editingSkill]);
-    } else {
-      setSkills(skills.map(s => s.id === editingSkill.id ? editingSkill : s));
+    try {
+      await saveSkill(editingSkill);
+      if (isCreating) {
+        setSkills([...skills, editingSkill]);
+      } else {
+        setSkills(skills.map(s => s.id === editingSkill.id ? editingSkill : s));
+      }
+      setEditingSkill(null);
+      setIsCreating(false);
+      showMessage('¡Habilidad guardada con éxito!');
+    } catch (error) {
+      showMessage('Error al guardar. Intenta nuevamente.');
     }
-    setEditingSkill(null);
-    setIsCreating(false);
   };
   
   const renderEditForm = () => {

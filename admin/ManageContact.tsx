@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { getData, saveData, PortfolioData, ContactData } from '../data/portfolioService';
+import React, { useState, useEffect } from 'react';
+import { getData, saveContact, PortfolioData, ContactData } from '../data/portfolioService';
 import { AdminButton, AdminInput } from './common';
 
 const ManageContact: React.FC = () => {
@@ -9,18 +9,25 @@ const ManageContact: React.FC = () => {
   const [message, setMessage] = useState('');
 
   // Recargar datos cuando cambian
-  React.useEffect(() => {
-    const currentData = getData();
-    setData(currentData);
-    setContact(currentData.contact);
+  useEffect(() => {
+    const loadData = async () => {
+      const currentData = await getData();
+      setData(currentData);
+      setContact(currentData.contact);
+    };
+    loadData();
   }, []);
 
-  const handleSave = () => {
-    const updatedData = { ...data, contact };
-    saveData(updatedData);
-    setData(updatedData);
-    setMessage('¡Información de contacto actualizada con éxito!');
-    setTimeout(() => setMessage(''), 3000);
+  const handleSave = async () => {
+    try {
+      await saveContact(contact);
+      setData({ ...data, contact });
+      setMessage('¡Información de contacto actualizada con éxito!');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      setMessage('Error al guardar. Intenta nuevamente.');
+      setTimeout(() => setMessage(''), 3000);
+    }
   };
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

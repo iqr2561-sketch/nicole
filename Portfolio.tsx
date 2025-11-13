@@ -8,21 +8,23 @@ import ProjectsSection from './components/ProjectsSection';
 import PhotographySection from './components/PhotographySection';
 import SkillsSection from './components/SkillsSection';
 import ContactSection from './components/ContactSection';
-import { getData, PortfolioData } from './data/portfolioService';
+import { getData, getDataSync, PortfolioData } from './data/portfolioService';
 
 const Portfolio: React.FC = () => {
-  const [data, setData] = useState<PortfolioData>(getData());
+  const [data, setData] = useState<PortfolioData>(getDataSync());
 
   useEffect(() => {
+    // Cargar datos desde la API al montar
+    getData().then(setData).catch(console.error);
+
     const handleStorageChange = () => {
-      setData(getData());
+      setData(getDataSync());
     };
 
     // Escuchar cambios en localStorage
     window.addEventListener('storage', handleStorageChange);
     
     // También escuchar eventos personalizados para cambios en la misma pestaña
-    const customEvent = new Event('portfolioDataUpdated');
     window.addEventListener('portfolioDataUpdated', handleStorageChange);
 
     return () => {

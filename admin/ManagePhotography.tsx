@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { getData, saveData, PortfolioData, Photo } from '../data/portfolioService';
+import React, { useState, useEffect } from 'react';
+import { getData, savePhoto, deletePhotoById, PortfolioData, Photo } from '../data/portfolioService';
 import { AdminButton, AdminInput } from './common';
 
 const ManagePhotography: React.FC = () => {
@@ -11,10 +11,13 @@ const ManagePhotography: React.FC = () => {
   const [message, setMessage] = useState('');
 
   // Recargar datos cuando cambian
-  React.useEffect(() => {
-    const currentData = getData();
-    setData(currentData);
-    setPhotos(currentData.photos);
+  useEffect(() => {
+    const loadData = async () => {
+      const currentData = await getData();
+      setData(currentData);
+      setPhotos(currentData.photos);
+    };
+    loadData();
   }, []);
 
   const showMessage = (msg: string) => {
@@ -22,11 +25,15 @@ const ManagePhotography: React.FC = () => {
     setTimeout(() => setMessage(''), 3000);
   };
   
-  const handleSaveAll = () => {
-    const updatedData = { ...data, photos };
-    saveData(updatedData);
-    setData(updatedData);
-    showMessage('¡Galería de fotos guardada con éxito!');
+  const handleSaveAll = async () => {
+    try {
+      for (const photo of photos) {
+        await savePhoto(photo);
+      }
+      showMessage('¡Galería de fotos guardada con éxito!');
+    } catch (error) {
+      showMessage('Error al guardar. Intenta nuevamente.');
+    }
   };
 
   const handleAdd = () => {
@@ -34,8 +41,14 @@ const ManagePhotography: React.FC = () => {
     setIsCreating(true);
   };
 
-  const handleDelete = (id: string) => {
-    setPhotos(photos.filter(p => p.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      await deletePhotoById(id);
+      setPhotos(photos.filter(p => p.id !== id));
+      showMessage('¡Foto eliminada con éxito!');
+    } catch (error) {
+      showMessage('Error al eliminar. Intenta nuevamente.');
+    }
   };
 
   const handleEdit = (photo: Photo) => {
@@ -43,15 +56,21 @@ const ManagePhotography: React.FC = () => {
     setIsCreating(false);
   };
 
-  const handleUpdatePhoto = () => {
+  const handleUpdatePhoto = async () => {
     if (!editingPhoto) return;
-    if (isCreating) {
-      setPhotos([...photos, editingPhoto]);
-    } else {
-      setPhotos(photos.map(p => p.id === editingPhoto.id ? editingPhoto : p));
+    try {
+      await savePhoto(editingPhoto);
+      if (isCreating) {
+        setPhotos([...photos, editingPhoto]);
+      } else {
+        setPhotos(photos.map(p => p.id === editingPhoto.id ? editingPhoto : p));
+      }
+      setEditingPhoto(null);
+      setIsCreating(false);
+      showMessage('¡Foto guardada con éxito!');
+    } catch (error) {
+      showMessage('Error al guardar. Intenta nuevamente.');
     }
-    setEditingPhoto(null);
-    setIsCreating(false);
   };
 
   const renderEditForm = () => {

@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { getData, saveData, PortfolioData, Project } from '../data/portfolioService';
+import React, { useState, useEffect } from 'react';
+import { getData, saveProject, deleteProjectById, PortfolioData, Project } from '../data/portfolioService';
 import { AdminButton, AdminInput } from './common';
 
 const ManageProjects: React.FC = () => {
@@ -11,10 +11,13 @@ const ManageProjects: React.FC = () => {
   const [message, setMessage] = useState('');
 
   // Recargar datos cuando cambian
-  React.useEffect(() => {
-    const currentData = getData();
-    setData(currentData);
-    setProjects(currentData.projects);
+  useEffect(() => {
+    const loadData = async () => {
+      const currentData = await getData();
+      setData(currentData);
+      setProjects(currentData.projects);
+    };
+    loadData();
   }, []);
 
   const showMessage = (msg: string) => {
@@ -22,11 +25,16 @@ const ManageProjects: React.FC = () => {
     setTimeout(() => setMessage(''), 3000);
   };
   
-  const handleSave = () => {
-    const updatedData = { ...data, projects };
-    saveData(updatedData);
-    setData(updatedData);
-    showMessage('¡Proyectos guardados con éxito!');
+  const handleSave = async () => {
+    try {
+      // Guardar todos los proyectos
+      for (const project of projects) {
+        await saveProject(project);
+      }
+      showMessage('¡Proyectos guardados con éxito!');
+    } catch (error) {
+      showMessage('Error al guardar. Intenta nuevamente.');
+    }
   };
 
   const handleAdd = () => {
@@ -34,9 +42,14 @@ const ManageProjects: React.FC = () => {
     setIsCreating(true);
   };
 
-  const handleDelete = (id: string) => {
-    setProjects(projects.filter(p => p.id !== id));
-    handleSave();
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteProjectById(id);
+      setProjects(projects.filter(p => p.id !== id));
+      showMessage('¡Proyecto eliminado con éxito!');
+    } catch (error) {
+      showMessage('Error al eliminar. Intenta nuevamente.');
+    }
   };
 
   const handleEdit = (project: Project) => {
@@ -44,15 +57,21 @@ const ManageProjects: React.FC = () => {
     setIsCreating(false);
   };
 
-  const handleUpdateProject = () => {
+  const handleUpdateProject = async () => {
     if (!editingProject) return;
-    if (isCreating) {
-      setProjects([...projects, editingProject]);
-    } else {
-      setProjects(projects.map(p => p.id === editingProject.id ? editingProject : p));
+    try {
+      await saveProject(editingProject);
+      if (isCreating) {
+        setProjects([...projects, editingProject]);
+      } else {
+        setProjects(projects.map(p => p.id === editingProject.id ? editingProject : p));
+      }
+      setEditingProject(null);
+      setIsCreating(false);
+      showMessage('¡Proyecto guardado con éxito!');
+    } catch (error) {
+      showMessage('Error al guardar. Intenta nuevamente.');
     }
-    setEditingProject(null);
-    setIsCreating(false);
   };
 
   const renderEditForm = () => {

@@ -1,31 +1,35 @@
 
-import React, { useState } from 'react';
-import { getData, saveData, PortfolioData } from '../data/portfolioService';
+import React, { useState, useEffect } from 'react';
+import { getDataSync, saveHero, PortfolioData } from '../data/portfolioService';
 import { AdminButton, AdminInput } from './common';
 
 const ManageHero: React.FC = () => {
-  const [data, setData] = useState<PortfolioData>(getData());
+  const [data, setData] = useState<PortfolioData>(getDataSync());
   const [name, setName] = useState(data.hero.name);
   const [subtitle, setSubtitle] = useState(data.hero.subtitle);
   const [message, setMessage] = useState('');
 
   // Recargar datos cuando cambian
-  React.useEffect(() => {
-    const currentData = getData();
-    setData(currentData);
-    setName(currentData.hero.name);
-    setSubtitle(currentData.hero.subtitle);
+  useEffect(() => {
+    const loadData = async () => {
+      const currentData = await getData();
+      setData(currentData);
+      setName(currentData.hero.name);
+      setSubtitle(currentData.hero.subtitle);
+    };
+    loadData();
   }, []);
 
-  const handleSave = () => {
-    const updatedData = {
-      ...data,
-      hero: { name, subtitle }
-    };
-    saveData(updatedData);
-    setData(updatedData);
-    setMessage('¡Sección de inicio actualizada con éxito!');
-    setTimeout(() => setMessage(''), 3000);
+  const handleSave = async () => {
+    try {
+      await saveHero({ name, subtitle });
+      setData({ ...data, hero: { name, subtitle } });
+      setMessage('¡Sección de inicio actualizada con éxito!');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      setMessage('Error al guardar. Intenta nuevamente.');
+      setTimeout(() => setMessage(''), 3000);
+    }
   };
 
   return (

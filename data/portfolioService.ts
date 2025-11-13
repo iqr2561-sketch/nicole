@@ -126,8 +126,38 @@ const defaultData: PortfolioData = {
 };
 
 const STORAGE_KEY = 'portfolioData';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
-export const getData = (): PortfolioData => {
+// Obtener datos desde la API o localStorage como fallback
+export const getData = async (): Promise<PortfolioData> => {
+  try {
+    // Intentar obtener desde la API
+    const response = await fetch(`${API_BASE_URL}/get-portfolio`);
+    if (response.ok) {
+      const data = await response.json();
+      // Guardar en localStorage como caché
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      return data;
+    }
+  } catch (error) {
+    console.error("Error fetching from API, using localStorage:", error);
+  }
+
+  // Fallback a localStorage
+  try {
+    const storedData = localStorage.getItem(STORAGE_KEY);
+    if (storedData) {
+      return JSON.parse(storedData);
+    }
+  } catch (error) {
+    console.error("Error reading from localStorage", error);
+  }
+  
+  return defaultData;
+};
+
+// Función síncrona para compatibilidad (usa caché de localStorage)
+export const getDataSync = (): PortfolioData => {
   try {
     const storedData = localStorage.getItem(STORAGE_KEY);
     if (storedData) {
@@ -139,12 +169,188 @@ export const getData = (): PortfolioData => {
   return defaultData;
 };
 
-export const saveData = (data: PortfolioData) => {
+// Guardar datos completos (para compatibilidad)
+export const saveData = async (data: PortfolioData): Promise<void> => {
   try {
+    // Guardar en localStorage como caché inmediato
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    // Disparar evento personalizado para notificar cambios en la misma pestaña
     window.dispatchEvent(new Event('portfolioDataUpdated'));
+    
+    // Actualizar en la base de datos
+    await Promise.all([
+      fetch(`${API_BASE_URL}/update-hero`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data.hero)
+      }),
+      fetch(`${API_BASE_URL}/update-about`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data.about)
+      }),
+      fetch(`${API_BASE_URL}/update-contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data.contact)
+      })
+    ]);
+
+    // Guardar proyectos, skills y photos individualmente
+    for (const project of data.projects) {
+      await fetch(`${API_BASE_URL}/projects`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(project)
+      });
+    }
+
+    for (const skill of data.skills) {
+      await fetch(`${API_BASE_URL}/skills`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(skill)
+      });
+    }
+
+    for (const photo of data.photos) {
+      await fetch(`${API_BASE_URL}/photos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(photo)
+      });
+    }
   } catch (error) {
-    console.error("Error saving to localStorage", error);
+    console.error("Error saving to database:", error);
+    // Al menos guardar en localStorage
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      window.dispatchEvent(new Event('portfolioDataUpdated'));
+    } catch (e) {
+      console.error("Error saving to localStorage", e);
+    }
   }
+};
+
+// Funciones específicas para cada sección
+export const saveHero = async (hero: HeroData): Promise<void> => {
+  await fetch(`${API_BASE_URL}/update-hero`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(hero)
+  });
+  const data = getDataSync();
+  data.hero = hero;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  window.dispatchEvent(new Event('portfolioDataUpdated'));
+};
+
+export const saveAbout = async (about: AboutData): Promise<void> => {
+  await fetch(`${API_BASE_URL}/update-about`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(about)
+  });
+  const data = getDataSync();
+  data.about = about;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  window.dispatchEvent(new Event('portfolioDataUpdated'));
+};
+
+export const saveProject = async (project: Project): Promise<void> => {
+  await fetch(`${API_BASE_URL}/projects`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(project)
+  });
+  const data = getDataSync();
+  const index = data.projects.findIndex(p => p.id === project.id);
+  if (index >= 0) {
+    data.projects[index] = project;
+  } else {
+    data.projects.push(project);
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  window.dispatchEvent(new Event('portfolioDataUpdated'));
+};
+
+export const deleteProjectById = async (projectId: string): Promise<void> => {
+  await fetch(`${API_BASE_URL}/projects`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ projectId })
+  });
+  const data = getDataSync();
+  data.projects = data.projects.filter(p => p.id !== projectId);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  window.dispatchEvent(new Event('portfolioDataUpdated'));
+};
+
+export const saveSkill = async (skill: Skill): Promise<void> => {
+  await fetch(`${API_BASE_URL}/skills`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(skill)
+  });
+  const data = getDataSync();
+  const index = data.skills.findIndex(s => s.id === skill.id);
+  if (index >= 0) {
+    data.skills[index] = skill;
+  } else {
+    data.skills.push(skill);
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  window.dispatchEvent(new Event('portfolioDataUpdated'));
+};
+
+export const deleteSkillById = async (skillId: string): Promise<void> => {
+  await fetch(`${API_BASE_URL}/skills`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ skillId })
+  });
+  const data = getDataSync();
+  data.skills = data.skills.filter(s => s.id !== skillId);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  window.dispatchEvent(new Event('portfolioDataUpdated'));
+};
+
+export const savePhoto = async (photo: Photo): Promise<void> => {
+  await fetch(`${API_BASE_URL}/photos`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(photo)
+  });
+  const data = getDataSync();
+  const index = data.photos.findIndex(p => p.id === photo.id);
+  if (index >= 0) {
+    data.photos[index] = photo;
+  } else {
+    data.photos.push(photo);
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  window.dispatchEvent(new Event('portfolioDataUpdated'));
+};
+
+export const deletePhotoById = async (photoId: string): Promise<void> => {
+  await fetch(`${API_BASE_URL}/photos`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ photoId })
+  });
+  const data = getDataSync();
+  data.photos = data.photos.filter(p => p.id !== photoId);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  window.dispatchEvent(new Event('portfolioDataUpdated'));
+};
+
+export const saveContact = async (contact: ContactData): Promise<void> => {
+  await fetch(`${API_BASE_URL}/update-contact`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(contact)
+  });
+  const data = getDataSync();
+  data.contact = contact;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  window.dispatchEvent(new Event('portfolioDataUpdated'));
 };

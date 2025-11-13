@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { getData, saveData, PortfolioData } from '../data/portfolioService';
+import React, { useState, useEffect } from 'react';
+import { getData, saveAbout, PortfolioData } from '../data/portfolioService';
 import { AdminButton, AdminInput, AdminTextarea } from './common';
 
 const ManageAbout: React.FC = () => {
@@ -10,22 +10,26 @@ const ManageAbout: React.FC = () => {
   const [message, setMessage] = useState('');
 
   // Recargar datos cuando cambian
-  React.useEffect(() => {
-    const currentData = getData();
-    setData(currentData);
-    setBio(currentData.about.bio);
-    setAvatarUrl(currentData.about.avatarUrl);
+  useEffect(() => {
+    const loadData = async () => {
+      const currentData = await getData();
+      setData(currentData);
+      setBio(currentData.about.bio);
+      setAvatarUrl(currentData.about.avatarUrl);
+    };
+    loadData();
   }, []);
 
-  const handleSave = () => {
-    const updatedData = {
-      ...data,
-      about: { bio, avatarUrl }
-    };
-    saveData(updatedData);
-    setData(updatedData);
-    setMessage('¡Sección "Sobre Mí" actualizada con éxito!');
-    setTimeout(() => setMessage(''), 3000);
+  const handleSave = async () => {
+    try {
+      await saveAbout({ bio, avatarUrl });
+      setData({ ...data, about: { bio, avatarUrl } });
+      setMessage('¡Sección "Sobre Mí" actualizada con éxito!');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      setMessage('Error al guardar. Intenta nuevamente.');
+      setTimeout(() => setMessage(''), 3000);
+    }
   };
 
   return (
