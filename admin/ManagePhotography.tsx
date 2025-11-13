@@ -1,11 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { getData, savePhoto, deletePhotoById, PortfolioData, Photo } from '../data/portfolioService';
+import { getDataSync, getData, savePhoto, deletePhotoById, PortfolioData, Photo, defaultData } from '../data/portfolioService';
 import { AdminButton, AdminInput } from './common';
 
 const ManagePhotography: React.FC = () => {
-  const [data, setData] = useState<PortfolioData>(getData());
-  const [photos, setPhotos] = useState<Photo[]>(data.photos);
+  const initialData = getDataSync();
+  const [data, setData] = useState<PortfolioData>(initialData);
+  const [photos, setPhotos] = useState<Photo[]>(initialData?.photos || defaultData.photos);
   const [editingPhoto, setEditingPhoto] = useState<Photo | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [message, setMessage] = useState('');
@@ -13,9 +14,13 @@ const ManagePhotography: React.FC = () => {
   // Recargar datos cuando cambian
   useEffect(() => {
     const loadData = async () => {
-      const currentData = await getData();
-      setData(currentData);
-      setPhotos(currentData.photos);
+      try {
+        const currentData = await getData();
+        setData(currentData);
+        setPhotos(currentData?.photos || defaultData.photos);
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
     };
     loadData();
   }, []);

@@ -1,19 +1,24 @@
 
 import React, { useState, useEffect } from 'react';
-import { getData, saveContact, PortfolioData, ContactData } from '../data/portfolioService';
+import { getDataSync, getData, saveContact, PortfolioData, ContactData, defaultData } from '../data/portfolioService';
 import { AdminButton, AdminInput } from './common';
 
 const ManageContact: React.FC = () => {
-  const [data, setData] = useState<PortfolioData>(getData());
-  const [contact, setContact] = useState<ContactData>(data.contact);
+  const initialData = getDataSync();
+  const [data, setData] = useState<PortfolioData>(initialData);
+  const [contact, setContact] = useState<ContactData>(initialData?.contact || defaultData.contact);
   const [message, setMessage] = useState('');
 
   // Recargar datos cuando cambian
   useEffect(() => {
     const loadData = async () => {
-      const currentData = await getData();
-      setData(currentData);
-      setContact(currentData.contact);
+      try {
+        const currentData = await getData();
+        setData(currentData);
+        setContact(currentData?.contact || defaultData.contact);
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
     };
     loadData();
   }, []);

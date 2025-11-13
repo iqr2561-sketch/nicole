@@ -1,21 +1,26 @@
 
 import React, { useState, useEffect } from 'react';
-import { getData, saveAbout, PortfolioData } from '../data/portfolioService';
+import { getDataSync, getData, saveAbout, PortfolioData, defaultData } from '../data/portfolioService';
 import { AdminButton, AdminInput, AdminTextarea } from './common';
 
 const ManageAbout: React.FC = () => {
-  const [data, setData] = useState<PortfolioData>(getData());
-  const [bio, setBio] = useState(data.about.bio);
-  const [avatarUrl, setAvatarUrl] = useState(data.about.avatarUrl);
+  const initialData = getDataSync();
+  const [data, setData] = useState<PortfolioData>(initialData);
+  const [bio, setBio] = useState(initialData?.about?.bio || defaultData.about.bio);
+  const [avatarUrl, setAvatarUrl] = useState(initialData?.about?.avatarUrl || defaultData.about.avatarUrl);
   const [message, setMessage] = useState('');
 
   // Recargar datos cuando cambian
   useEffect(() => {
     const loadData = async () => {
-      const currentData = await getData();
-      setData(currentData);
-      setBio(currentData.about.bio);
-      setAvatarUrl(currentData.about.avatarUrl);
+      try {
+        const currentData = await getData();
+        setData(currentData);
+        setBio(currentData?.about?.bio || defaultData.about.bio);
+        setAvatarUrl(currentData?.about?.avatarUrl || defaultData.about.avatarUrl);
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
     };
     loadData();
   }, []);

@@ -1,21 +1,26 @@
 
 import React, { useState, useEffect } from 'react';
-import { getDataSync, saveHero, PortfolioData } from '../data/portfolioService';
+import { getDataSync, getData, saveHero, PortfolioData, defaultData } from '../data/portfolioService';
 import { AdminButton, AdminInput } from './common';
 
 const ManageHero: React.FC = () => {
-  const [data, setData] = useState<PortfolioData>(getDataSync());
-  const [name, setName] = useState(data.hero.name);
-  const [subtitle, setSubtitle] = useState(data.hero.subtitle);
+  const initialData = getDataSync();
+  const [data, setData] = useState<PortfolioData>(initialData);
+  const [name, setName] = useState(initialData?.hero?.name || defaultData.hero.name);
+  const [subtitle, setSubtitle] = useState(initialData?.hero?.subtitle || defaultData.hero.subtitle);
   const [message, setMessage] = useState('');
 
   // Recargar datos cuando cambian
   useEffect(() => {
     const loadData = async () => {
-      const currentData = await getData();
-      setData(currentData);
-      setName(currentData.hero.name);
-      setSubtitle(currentData.hero.subtitle);
+      try {
+        const currentData = await getData();
+        setData(currentData);
+        setName(currentData?.hero?.name || defaultData.hero.name);
+        setSubtitle(currentData?.hero?.subtitle || defaultData.hero.subtitle);
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
     };
     loadData();
   }, []);

@@ -1,13 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
-import { getData, saveSkill, deleteSkillById, PortfolioData, Skill } from '../data/portfolioService';
+import { getDataSync, getData, saveSkill, deleteSkillById, PortfolioData, Skill, defaultData } from '../data/portfolioService';
 import { AdminButton, AdminInput } from './common';
 
 const availableIcons = ['ReactIcon', 'TailwindIcon', 'JavaScriptIcon', 'TypeScriptIcon', 'NodeIcon', 'FigmaIcon'];
 
 const ManageSkills: React.FC = () => {
-  const [data, setData] = useState<PortfolioData>(getData());
-  const [skills, setSkills] = useState<Skill[]>(data.skills);
+  const initialData = getDataSync();
+  const [data, setData] = useState<PortfolioData>(initialData);
+  const [skills, setSkills] = useState<Skill[]>(initialData?.skills || defaultData.skills);
   const [editingSkill, setEditingSkill] = useState<Skill | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [message, setMessage] = useState('');
@@ -15,9 +16,13 @@ const ManageSkills: React.FC = () => {
   // Recargar datos cuando cambian
   useEffect(() => {
     const loadData = async () => {
-      const currentData = await getData();
-      setData(currentData);
-      setSkills(currentData.skills);
+      try {
+        const currentData = await getData();
+        setData(currentData);
+        setSkills(currentData?.skills || defaultData.skills);
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
     };
     loadData();
   }, []);

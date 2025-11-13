@@ -1,11 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { getData, saveProject, deleteProjectById, PortfolioData, Project } from '../data/portfolioService';
+import { getDataSync, getData, saveProject, deleteProjectById, PortfolioData, Project, defaultData } from '../data/portfolioService';
 import { AdminButton, AdminInput } from './common';
 
 const ManageProjects: React.FC = () => {
-  const [data, setData] = useState<PortfolioData>(getData());
-  const [projects, setProjects] = useState<Project[]>(data.projects);
+  const initialData = getDataSync();
+  const [data, setData] = useState<PortfolioData>(initialData);
+  const [projects, setProjects] = useState<Project[]>(initialData?.projects || defaultData.projects);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [message, setMessage] = useState('');
@@ -13,9 +14,13 @@ const ManageProjects: React.FC = () => {
   // Recargar datos cuando cambian
   useEffect(() => {
     const loadData = async () => {
-      const currentData = await getData();
-      setData(currentData);
-      setProjects(currentData.projects);
+      try {
+        const currentData = await getData();
+        setData(currentData);
+        setProjects(currentData?.projects || defaultData.projects);
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
     };
     loadData();
   }, []);
