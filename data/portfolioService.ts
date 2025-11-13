@@ -45,7 +45,7 @@ export interface PortfolioData {
   contact: ContactData;
 }
 
-const defaultData: PortfolioData = {
+export const defaultData: PortfolioData = {
   hero: {
     name: "Nicole Ponce",
     subtitle: "Porfolio Personal"

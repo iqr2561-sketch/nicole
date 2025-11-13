@@ -22,6 +22,17 @@ interface SkillsSectionProps {
 }
 
 const SkillsSection: React.FC<SkillsSectionProps> = ({ skills }) => {
+  if (!skills || !Array.isArray(skills) || skills.length === 0) {
+    return (
+      <AnimatedSection id="skills">
+        <h2 className="text-3xl md:text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-green mb-12">
+          Habilidades
+        </h2>
+        <p className="text-center text-gray-400">No hay habilidades disponibles</p>
+      </AnimatedSection>
+    );
+  }
+
   return (
     <AnimatedSection id="skills">
       <h2 className="text-3xl md:text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-green mb-12">

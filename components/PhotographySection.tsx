@@ -20,6 +20,17 @@ const PhotographySection: React.FC<PhotographySectionProps> = ({ photos }) => {
     setSelectedPhoto(null);
   };
 
+  if (!photos || !Array.isArray(photos) || photos.length === 0) {
+    return (
+      <AnimatedSection id="photography">
+        <h2 className="text-3xl md:text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-green mb-12">
+          Fotografía
+        </h2>
+        <p className="text-center text-gray-400">No hay fotografías disponibles</p>
+      </AnimatedSection>
+    );
+  }
+
   return (
     <>
       <AnimatedSection id="photography">

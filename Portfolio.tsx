@@ -8,17 +8,47 @@ import ProjectsSection from './components/ProjectsSection';
 import PhotographySection from './components/PhotographySection';
 import SkillsSection from './components/SkillsSection';
 import ContactSection from './components/ContactSection';
-import { getData, getDataSync, PortfolioData } from './data/portfolioService';
+import { getData, getDataSync, PortfolioData, defaultData } from './data/portfolioService';
 
 const Portfolio: React.FC = () => {
-  const [data, setData] = useState<PortfolioData>(getDataSync());
+  const [data, setData] = useState<PortfolioData>(() => {
+    const cached = getDataSync();
+    // Asegurar que todos los arrays existan
+    return {
+      ...defaultData,
+      ...cached,
+      projects: cached?.projects || defaultData.projects,
+      skills: cached?.skills || defaultData.skills,
+      photos: cached?.photos || defaultData.photos,
+    };
+  });
 
   useEffect(() => {
     // Cargar datos desde la API al montar
-    getData().then(setData).catch(console.error);
+    getData().then((apiData) => {
+      // Asegurar que todos los arrays existan
+      setData({
+        ...defaultData,
+        ...apiData,
+        projects: apiData?.projects || defaultData.projects,
+        skills: apiData?.skills || defaultData.skills,
+        photos: apiData?.photos || defaultData.photos,
+      });
+    }).catch((error) => {
+      console.error('Error loading data:', error);
+      // Mantener los datos por defecto si falla la carga
+    });
 
     const handleStorageChange = () => {
-      setData(getDataSync());
+      const cached = getDataSync();
+      // Asegurar que todos los arrays existan
+      setData({
+        ...defaultData,
+        ...cached,
+        projects: cached?.projects || defaultData.projects,
+        skills: cached?.skills || defaultData.skills,
+        photos: cached?.photos || defaultData.photos,
+      });
     };
 
     // Escuchar cambios en localStorage
